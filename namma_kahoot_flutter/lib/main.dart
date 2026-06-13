@@ -4,9 +4,6 @@ import 'package:serverpod_flutter/serverpod_flutter.dart';
 import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'features/kahoot/kahoot_home_screen.dart';
-
-// import 'screens/greetings_screen.dart';
-
 /// Sets up a global client object that can be used to talk to the server from
 /// anywhere in our app. The client is generated from your server code
 /// and is set up to connect to a Serverpod running on a local server on
