@@ -484,6 +484,25 @@ class Endpoints extends _i1.EndpointDispatch {
                     params['pin'],
                   ),
         ),
+        'nextQuestion': _i1.MethodConnector(
+          name: 'nextQuestion',
+          params: {
+            'pin': _i1.ParameterDescription(
+              name: 'pin',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['kahoot'] as _i5.KahootEndpoint).nextQuestion(
+                    session,
+                    params['pin'],
+                  ),
+        ),
         'submitAnswer': _i1.MethodConnector(
           name: 'submitAnswer',
           params: {
@@ -515,6 +534,25 @@ class Endpoints extends _i1.EndpointDispatch {
                     params['optionIndex'],
                   ),
         ),
+        'endQuestion': _i1.MethodConnector(
+          name: 'endQuestion',
+          params: {
+            'pin': _i1.ParameterDescription(
+              name: 'pin',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['kahoot'] as _i5.KahootEndpoint).endQuestion(
+                    session,
+                    params['pin'],
+                  ),
+        ),
         'showLeaderboard': _i1.MethodConnector(
           name: 'showLeaderboard',
           params: {
@@ -533,6 +571,24 @@ class Endpoints extends _i1.EndpointDispatch {
                     session,
                     params['pin'],
                   ),
+        ),
+        'finishGame': _i1.MethodConnector(
+          name: 'finishGame',
+          params: {
+            'pin': _i1.ParameterDescription(
+              name: 'pin',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['kahoot'] as _i5.KahootEndpoint).finishGame(
+                session,
+                params['pin'],
+              ),
         ),
         'gameStream': _i1.MethodStreamConnector(
           name: 'gameStream',

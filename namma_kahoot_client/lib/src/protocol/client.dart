@@ -370,19 +370,27 @@ class EndpointKahoot extends _i2.EndpointRef {
     },
   );
 
-  /// Host starts a question
+  /// Host starts the first question
   _i3.Future<void> startQuestion(String pin) => caller.callServerEndpoint<void>(
     'kahoot',
     'startQuestion',
     {'pin': pin},
   );
 
-  /// Player submits an answer
-  _i3.Future<void> submitAnswer(
+  /// Host transitions to the next question
+  _i3.Future<_i7.GameSession?> nextQuestion(String pin) =>
+      caller.callServerEndpoint<_i7.GameSession?>(
+        'kahoot',
+        'nextQuestion',
+        {'pin': pin},
+      );
+
+  /// Player submits an answer, returning points earned
+  _i3.Future<int> submitAnswer(
     String pin,
     int playerId,
     int optionIndex,
-  ) => caller.callServerEndpoint<void>(
+  ) => caller.callServerEndpoint<int>(
     'kahoot',
     'submitAnswer',
     {
@@ -392,13 +400,27 @@ class EndpointKahoot extends _i2.EndpointRef {
     },
   );
 
-  /// Host shows leaderboard / results
+  /// Host ends the question, locking responses and revealing the answer
+  _i3.Future<void> endQuestion(String pin) => caller.callServerEndpoint<void>(
+    'kahoot',
+    'endQuestion',
+    {'pin': pin},
+  );
+
+  /// Host shows leaderboard
   _i3.Future<void> showLeaderboard(String pin) =>
       caller.callServerEndpoint<void>(
         'kahoot',
         'showLeaderboard',
         {'pin': pin},
       );
+
+  /// Host finishes the game and reveals the podium (top 3)
+  _i3.Future<void> finishGame(String pin) => caller.callServerEndpoint<void>(
+    'kahoot',
+    'finishGame',
+    {'pin': pin},
+  );
 }
 
 class Modules {

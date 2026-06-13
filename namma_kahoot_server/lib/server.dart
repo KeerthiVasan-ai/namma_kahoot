@@ -55,6 +55,70 @@ void run(List<String> args) async {
 
   // Start the server.
   await pod.start();
+
+  // Seed default quiz
+  await _seedDefaultQuiz(pod);
+}
+
+Future<void> _seedDefaultQuiz(Serverpod pod) async {
+  final session = await pod.createSession();
+  try {
+    final quizzes = await Quiz.db.find(session, limit: 1);
+    if (quizzes.isEmpty) {
+      stdout.writeln('Seeding default trivia quiz...');
+      var quiz = Quiz(
+        title: 'General Trivia Spark',
+        creatorId: 1,
+        description: 'Test your general knowledge with these fun questions!',
+        createdAt: DateTime.now(),
+      );
+      quiz = await Quiz.db.insertRow(session, quiz);
+
+      final questions = [
+        Question(
+          quizId: quiz.id!,
+          text: 'Which planet is known as the Red Planet?',
+          options: ['Earth', 'Mars', 'Jupiter', 'Venus'],
+          correctOptionIndex: 1,
+          timeLimitSeconds: 20,
+          orderIndex: 0,
+        ),
+        Question(
+          quizId: quiz.id!,
+          text: 'What is the chemical symbol for gold?',
+          options: ['Gd', 'Au', 'Ag', 'Fe'],
+          correctOptionIndex: 1,
+          timeLimitSeconds: 15,
+          orderIndex: 1,
+        ),
+        Question(
+          quizId: quiz.id!,
+          text: 'Who painted the Mona Lisa?',
+          options: ['Vincent van Gogh', 'Pablo Picasso', 'Leonardo da Vinci', 'Claude Monet'],
+          correctOptionIndex: 2,
+          timeLimitSeconds: 20,
+          orderIndex: 2,
+        ),
+        Question(
+          quizId: quiz.id!,
+          text: 'How many bones are there in an adult human body?',
+          options: ['106', '206', '306', '406'],
+          correctOptionIndex: 1,
+          timeLimitSeconds: 20,
+          orderIndex: 3,
+        ),
+      ];
+
+      for (var q in questions) {
+        await Question.db.insertRow(session, q);
+      }
+      stdout.writeln('Seeding complete!');
+    }
+  } catch (e) {
+    stderr.writeln('Failed to seed default quiz: $e');
+  } finally {
+    await session.close();
+  }
 }
 
 void _sendRegistrationCode(

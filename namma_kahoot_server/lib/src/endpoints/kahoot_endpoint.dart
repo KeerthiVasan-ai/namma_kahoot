@@ -67,7 +67,7 @@ class KahootEndpoint extends Endpoint {
     return player;
   }
 
-  /// Host starts a question
+  /// Host starts the first question
   Future<void> startQuestion(Session session, String pin) async {
     var game = await getGameByPin(session, pin);
     if (game != null) {
@@ -86,25 +86,51 @@ class KahootEndpoint extends Endpoint {
     }
   }
 
-  /// Player submits an answer
-  Future<void> submitAnswer(Session session, String pin, int playerId, int optionIndex) async {
+  /// Host transitions to the next question
+  Future<GameSession?> nextQuestion(Session session, String pin) async {
     var game = await getGameByPin(session, pin);
-    if (game == null || game.status != 'active' || game.startTime == null) return;
+    if (game == null) return null;
+
+    game.currentQuestionIndex += 1;
+    game.status = 'active';
+    game.startTime = DateTime.now();
+    
+    await GameSession.db.updateRow(session, game);
+
+    final event = GameEvent(
+      eventType: 'QUESTION_STARTED',
+      dataJson: '{"questionIndex": ${game.currentQuestionIndex}}',
+    );
+
+    // Notify both host and players
+    await session.messages.postMessage('game-$pin', event);
+    await session.messages.postMessage('game-$pin-host', event);
+
+    return game;
+  }
+
+  /// Player submits an answer, returning points earned
+  Future<int> submitAnswer(Session session, String pin, int playerId, int optionIndex) async {
+    var game = await getGameByPin(session, pin);
+    if (game == null || game.status != 'active' || game.startTime == null) return 0;
 
     var question = await Question.db.findFirstRow(
       session,
       where: (t) => t.quizId.equals(game.quizId) & t.orderIndex.equals(game.currentQuestionIndex),
     );
 
-    if (question == null) return;
+    if (question == null) return 0;
 
     int points = 0;
     if (question.correctOptionIndex == optionIndex) {
        final timeTaken = DateTime.now().difference(game.startTime!).inSeconds;
        final timeLimit = question.timeLimitSeconds;
        if (timeTaken <= timeLimit) {
-           points = (1000 * (1 - (timeTaken / timeLimit))).round();
-           if (points < 0) points = 0;
+           // Fast answer gives more points (Kahoot-like scaling)
+           points = (1000 * (1 - (timeTaken / (timeLimit * 2.0)))).round();
+           if (points < 500) points = 500; // Base points for correct answer
+       } else {
+           points = 500; // Correct but slow
        }
     }
 
@@ -116,40 +142,92 @@ class KahootEndpoint extends Endpoint {
         }
     }
 
-    // Send answer received ONLY to the host
+    // Send answer received to the host for real-time charts
     await session.messages.postMessage('game-$pin-host', GameEvent(
       eventType: 'ANSWER_RECEIVED',
       dataJson: '{"playerId": $playerId, "optionIndex": $optionIndex, "points": $points}',
     ));
+
+    return points;
   }
 
-  /// Host shows leaderboard / results
+  /// Host ends the question, locking responses and revealing the answer
+  Future<void> endQuestion(Session session, String pin) async {
+    var game = await getGameByPin(session, pin);
+    if (game == null || game.status != 'active') return;
+
+    game.status = 'paused';
+    await GameSession.db.updateRow(session, game);
+
+    var question = await Question.db.findFirstRow(
+      session,
+      where: (t) => t.quizId.equals(game.quizId) & t.orderIndex.equals(game.currentQuestionIndex),
+    );
+
+    final correctIndex = question?.correctOptionIndex ?? 0;
+
+    final event = GameEvent(
+      eventType: 'QUESTION_ENDED',
+      dataJson: '{"questionIndex": ${game.currentQuestionIndex}, "correctOptionIndex": $correctIndex}',
+    );
+
+    // Notify both host and players
+    await session.messages.postMessage('game-$pin', event);
+    await session.messages.postMessage('game-$pin-host', event);
+  }
+
+  /// Host shows leaderboard
   Future<void> showLeaderboard(Session session, String pin) async {
     var game = await getGameByPin(session, pin);
-    if (game != null) {
-      game.status = 'finished'; // or 'showing_leaderboard'
-      
-      // Get top 5 players
-      var topPlayers = await Player.db.find(
-        session,
-        where: (t) => t.gameSessionId.equals(game.id),
-        orderBy: (t) => t.score,
-        orderDescending: true,
-        limit: 5,
-      );
-      
-      var leaderboardJson = topPlayers.map((p) => '{"name": "${p.name}", "score": ${p.score}}').toList();
-      var dataJson = '{"topPlayers": $leaderboardJson}';
+    if (game == null) return;
 
-      await GameSession.db.updateRow(session, game);
+    // Get top 5 players
+    var topPlayers = await Player.db.find(
+      session,
+      where: (t) => t.gameSessionId.equals(game.id),
+      orderBy: (t) => t.score,
+      orderDescending: true,
+      limit: 5,
+    );
+    
+    var leaderboardList = topPlayers.map((p) => '{"name": "${p.name}", "score": ${p.score}}').toList();
+    var dataJson = '{"topPlayers": $leaderboardList}';
 
-      final event = GameEvent(
-        eventType: 'SHOW_LEADERBOARD',
-        dataJson: dataJson,
-      );
+    final event = GameEvent(
+      eventType: 'SHOW_LEADERBOARD',
+      dataJson: dataJson,
+    );
 
-      await session.messages.postMessage('game-$pin', event);
-      await session.messages.postMessage('game-$pin-host', event);
-    }
+    await session.messages.postMessage('game-$pin', event);
+    await session.messages.postMessage('game-$pin-host', event);
+  }
+
+  /// Host finishes the game and reveals the podium (top 3)
+  Future<void> finishGame(Session session, String pin) async {
+    var game = await getGameByPin(session, pin);
+    if (game == null) return;
+
+    game.status = 'finished';
+    await GameSession.db.updateRow(session, game);
+
+    // Get top 3 players
+    var topPlayers = await Player.db.find(
+      session,
+      where: (t) => t.gameSessionId.equals(game.id),
+      orderBy: (t) => t.score,
+      orderDescending: true,
+      limit: 3,
+    );
+
+    var podiumList = topPlayers.map((p) => '{"name": "${p.name}", "score": ${p.score}}').toList();
+    var dataJson = '{"topPlayers": $podiumList}';
+
+    final event = GameEvent(
+      eventType: 'GAME_FINISHED',
+      dataJson: dataJson,
+    );
+
+    await session.messages.postMessage('game-$pin', event);
+    await session.messages.postMessage('game-$pin-host', event);
   }
 }
