@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Namma Kahoot | Real-Time Trivia</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="background-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+    <div class="container">
+        <h1>Namma Kahoot</h1>
+        <p>Real-time trivia for everyone. Join with a PIN or host your own session.</p>
+
+        <div class="join-form">
+            <input type="number" id="pinInput" placeholder="Game PIN" max="999999">
+            <button onclick="joinGame()">Enter</button>
+        </div>
+
+        <div style="margin: 24px 0; opacity: 0.5;">OR</div>
+
+        <div class="actions">
+            <a href="/app" class="btn btn-primary">Open App (Player)</a>
+            <a href="/app?role=host" class="btn btn-secondary">Host a Game</a>
+        </div>
+
+        <div style="margin-top: 40px; font-size: 0.9rem; opacity: 0.6;">
+            Built with 💜 using Serverpod & Flutter
+        </div>
+    </div>
+
+    <script>
+        function joinGame() {
+            const pin = document.getElementById('pinInput').value;
+            if (pin && pin.length === 6) {
+                window.location.href = `/app?pin=${pin}`;
+            } else {
+                alert('Please enter a valid 6-digit PIN');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+class: Player
+table: players
+fields:
+  gameSessionId: int
+  name: String
+  score: int
+indexes:
+  player_game_session_idx:
+    fields: gameSessionId

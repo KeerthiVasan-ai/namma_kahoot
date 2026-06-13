@@ -1,0 +1,13 @@
+class: GameSession
+table: game_sessions
+fields:
+  pin: String
+  quizId: int
+  hostId: int
+  status: String # 'lobby', 'active', 'finished'
+  currentQuestionIndex: int
+  startTime: DateTime?
+indexes:
+  game_session_pin_idx:
+    fields: pin
+    unique: true

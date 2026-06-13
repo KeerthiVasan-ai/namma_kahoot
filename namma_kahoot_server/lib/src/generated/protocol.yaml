@@ -1,0 +1,27 @@
+emailIdp:
+  - login:
+  - startRegistration:
+  - verifyRegistrationCode:
+  - finishRegistration:
+  - startPasswordReset:
+  - verifyPasswordResetCode:
+  - finishPasswordReset:
+  - hasAccount:
+jwtRefresh:
+  - refreshAccessToken:
+admin:
+  - createQuiz:
+  - getQuizzes:
+  - getQuiz:
+  - addQuestion:
+  - getQuestionsForQuiz:
+  - deleteQuiz:
+kahoot:
+  - createGame:
+  - getGameByPin:
+  - gameStream:
+  - sendEvent:
+  - joinGame:
+  - startQuestion:
+  - submitAnswer:
+  - showLeaderboard:

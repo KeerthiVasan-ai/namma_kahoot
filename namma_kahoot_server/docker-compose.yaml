@@ -1,0 +1,44 @@
+services:
+  # Development services
+  postgres:
+    image: pgvector/pgvector:pg16
+    ports:
+      - "8090:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_DB: namma_kahoot
+      POSTGRES_PASSWORD: "qOaId7FPk7GQRahxbiCHU1J6OiLYkLCu"
+    volumes:
+      - namma_kahoot_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:6.2.6
+    ports:
+      - "8091:6379"
+    command: redis-server --requirepass "ErWl8bHnIBhA3BhGWLSRGP8_X80vtihU"
+    environment:
+      - REDIS_REPLICATION_MODE=master
+
+  # Test services
+  postgres_test:
+    image: pgvector/pgvector:pg16
+    ports:
+      - "9090:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_DB: namma_kahoot_test
+      POSTGRES_PASSWORD: "4zbCDj162h5AoiwI3WQ0dvEhYerhF5r4"
+    volumes:
+      - namma_kahoot_test_data:/var/lib/postgresql/data
+
+  redis_test:
+    image: redis:6.2.6
+    ports:
+      - "9091:6379"
+    command: redis-server --requirepass "w3Tz9h-cT4xcGhiv-aG0fhid67CGu3lK"
+    environment:
+      - REDIS_REPLICATION_MODE=master
+
+volumes:
+  namma_kahoot_data:
+  namma_kahoot_test_data:

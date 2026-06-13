@@ -1,0 +1,12 @@
+class: Question
+table: questions
+fields:
+  quizId: int
+  text: String
+  options: List<String>
+  correctOptionIndex: int
+  timeLimitSeconds: int
+  orderIndex: int
+indexes:
+  question_quiz_idx:
+    fields: quizId

@@ -1,0 +1,4 @@
+class: GameEvent
+fields:
+  eventType: String # 'PLAYER_JOINED', 'QUESTION_STARTED', 'ANSWER_RECEIVED', 'SHOW_LEADERBOARD'
+  dataJson: String # Additional data encoded as JSON strings

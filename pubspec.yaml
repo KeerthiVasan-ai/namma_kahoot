@@ -1,0 +1,11 @@
+name: _
+publish_to: none
+
+environment:
+  sdk: '^3.8.0'
+
+workspace:
+  - namma_kahoot_client
+  - namma_kahoot_server
+  - namma_kahoot_flutter
+

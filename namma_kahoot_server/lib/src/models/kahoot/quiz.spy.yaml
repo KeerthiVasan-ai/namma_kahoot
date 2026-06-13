@@ -1,0 +1,10 @@
+class: Quiz
+table: quizzes
+fields:
+  title: String
+  creatorId: int
+  description: String?
+  createdAt: DateTime
+indexes:
+  quiz_creator_idx:
+    fields: creatorId
