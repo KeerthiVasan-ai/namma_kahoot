@@ -8,40 +8,40 @@ class HomePage extends StatelessComponent {
   @override
   Component build(BuildContext context) {
     return div(classes: 'scr on', [
-      div(classes: 'hero-bg', [
-        div(attributes: {'style': 'margin-bottom:16px;display:flex;align-items:center;gap:12px;'}, [
-          div(attributes: {'style': 'width:56px;height:56px;background:rgba(255,255,255,.2);border-radius:16px;display:flex;align-items:center;justify-content:center;'}, [
-            i(classes: 'ti ti-bolt', attributes: {'style': 'font-size:32px;color:#fff;'}, [])
-          ]),
-          div(attributes: {'style': 'text-align:left;'}, [
-            div(attributes: {'style': 'font-size:24px;font-weight:600;color:#fff;'}, [Component.text('Namma Kahoot')]),
-            div(attributes: {'style': 'font-size:13px;color:#CECBF6;'}, [Component.text('Open source · Jaspr + Serverpod')]),
-          ])
+      div(classes: 'hero-bg bg-pattern', [
+        div(attributes: {'style': 'margin-bottom:16px;'}, [
+          div(attributes: {'style': 'font-size:42px;font-weight:900;color:#fff;text-shadow:2px 2px 4px rgba(0,0,0,0.3);'}, [Component.text('Namma Kahoot')]),
         ]),
         div(classes: 't-hero mb8', [Component.text('Quizzes for everyone.')]),
         div(classes: 't-sub mb16', attributes: {'style': 'font-size:15px;max-width:500px;margin:0 auto 24px;'}, [
           Component.text('Real-time multiplayer quizzes — host, play, and share. Built in the open.')
         ]),
-        div(attributes: {'style': 'display:flex;gap:12px;max-width:400px;margin:0 auto;width:100%;'}, [
-          button(classes: 'btn btn-ghost', attributes: {'style': 'flex:1;font-size:15px;padding:14px;'}, events: {
+        div(attributes: {'style': 'display:flex;gap:12px;max-width:250px;margin:0 auto;width:100%;'}, [
+          button(classes: 'btn', attributes: {'style': 'flex:1;font-size:16px;font-weight:700;padding:16px;background:#ffffff;color:var(--kahoot-purple);border-radius:4px;box-shadow:0 4px 0 rgba(0,0,0,0.2);'}, events: {
             'click': (e) => Router.of(context).push('/host')
           }, [
             i(classes: 'ti ti-player-play', []), Component.text(' Host a quiz')
-          ]),
-          button(classes: 'btn btn-ghost', attributes: {'style': 'flex:1;font-size:15px;padding:14px;'}, events: {
-            'click': (e) => Router.of(context).push('/play')
-          }, [
-            i(classes: 'ti ti-login', []), Component.text(' Join with PIN')
           ])
         ])
       ]),
       
       div(classes: 'content-wrap p20', [
-        div(classes: 'tiles-grid mt12', [
-          div(classes: 'tile ta', [div(classes: 'tile-icon', [i(classes: 'ti ti-triangle', [])]), span(classes: 'tile-text', [Component.text('H₂O')])]),
-          div(classes: 'tile tb', [div(classes: 'tile-icon', [i(classes: 'ti ti-circle', [])]), span(classes: 'tile-text', [Component.text('CO₂')])]),
-          div(classes: 'tile tc', [div(classes: 'tile-icon', [i(classes: 'ti ti-square', [])]), span(classes: 'tile-text', [Component.text('O₂')])]),
-          div(classes: 'tile td', [div(classes: 'tile-icon', [i(classes: 'ti ti-diamond', [])]), span(classes: 'tile-text', [Component.text('NaCl')])]),
+        div(attributes: {'style': 'position:relative;max-width:400px;margin:20px auto;padding:40px 20px;'}, [
+          // Floating background shapes
+          div(classes: 'float-anim', attributes: {'style': 'position:absolute;top:20px;left:-20px;'}, [i(classes: 'ti ti-triangle-filled', attributes: {'style': 'font-size:48px;color:var(--kahoot-red);transform:rotate(-15deg);'}, [])]),
+          div(classes: 'float-anim delay-1', attributes: {'style': 'position:absolute;bottom:0px;left:-40px;'}, [i(classes: 'ti ti-diamond-filled', attributes: {'style': 'font-size:56px;color:var(--kahoot-blue);transform:rotate(10deg);'}, [])]),
+          div(classes: 'float-anim delay-2', attributes: {'style': 'position:absolute;top:-10px;right:-10px;'}, [i(classes: 'ti ti-circle-filled', attributes: {'style': 'font-size:36px;color:var(--kahoot-yellow);'}, [])]),
+          div(classes: 'float-anim delay-3', attributes: {'style': 'position:absolute;bottom:20px;right:-30px;'}, [i(classes: 'ti ti-square-filled', attributes: {'style': 'font-size:42px;color:var(--kahoot-green);transform:rotate(15deg);'}, [])]),
+
+          // Creative Join Card
+          div(classes: 'card', attributes: {'style': 'background:#ffffff;border-radius:16px;padding:32px 24px;box-shadow:0 8px 30px rgba(0,0,0,0.15);position:relative;z-index:2;border:none;'}, [
+            div(attributes: {'style': 'text-align:center;margin-bottom:24px;'}, [
+              div(attributes: {'style': 'font-size:24px;font-weight:900;color:var(--color-text-primary);'}, [Component.text('Ready to play?')]),
+            ]),
+            button(classes: 'btn btn-full', attributes: {'style': 'font-size:22px;font-weight:900;padding:20px;background:#333333;color:#fff;border-radius:8px;box-shadow:0 6px 0 #000;'}, events: {
+              'click': (e) => Router.of(context).push('/play')
+            }, [Component.text('Enter Game PIN')])
+          ])
         ]),
         
         div(attributes: {'style': 'display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-top:24px;'}, [
@@ -67,6 +67,37 @@ class HomePage extends StatelessComponent {
         }, [
           Component.text('Go to Admin Dashboard '), i(classes: 'ti ti-arrow-right', [])
         ]),
+      ]),
+      
+      // Footer Section
+      footer(attributes: {'style': 'background:#111111;color:#ffffff;padding:40px 20px 20px;margin-top:auto;font-family:var(--font-sans);'}, [
+        div(classes: 'content-wrap', attributes: {'style': 'display:flex;flex-wrap:wrap;gap:40px;justify-content:space-between;margin-bottom:40px;'}, [
+          div(attributes: {'style': 'flex:1;min-width:200px;'}, [
+            div(attributes: {'style': 'font-size:24px;font-weight:800;margin-bottom:12px;display:flex;align-items:center;gap:8px;'}, [
+              i(classes: 'ti ti-bolt', attributes: {'style': 'color:var(--kahoot-purple);'}, []), Component.text('Namma Kahoot')
+            ]),
+            a(href: 'https://jaspr.dev', attributes: {'target': '_blank', 'rel': 'noopener noreferrer', 'aria-label': 'Built with Jaspr'}, [
+              img(src: 'images/builtwithjaspr.svg', width: 106, height: 40, attributes: {'alt': 'Built with Jaspr'}),
+            ]),
+          ]),
+          div(attributes: {'style': 'flex:1;min-width:120px;'}, [
+            div(attributes: {'style': 'font-size:14px;font-weight:700;margin-bottom:16px;'}, [Component.text('Navigation')]),
+            div(attributes: {'style': 'display:flex;flex-direction:column;gap:12px;font-size:14px;color:#a0a0a0;'}, [
+              a(href: '/', attributes: {'style': 'color:#a0a0a0;text-decoration:none;'}, [Component.text('Home')]),
+              a(href: '/play', attributes: {'style': 'color:#a0a0a0;text-decoration:none;'}, [Component.text('Play')]),
+              a(href: '/host', attributes: {'style': 'color:#a0a0a0;text-decoration:none;'}, [Component.text('Host')]),
+            ])
+          ]),
+          div(attributes: {'style': 'flex:1;min-width:120px;'}, [
+            div(attributes: {'style': 'font-size:14px;font-weight:700;margin-bottom:16px;'}, [Component.text('Community')]),
+            div(attributes: {'style': 'display:flex;flex-direction:column;gap:12px;font-size:14px;color:#a0a0a0;'}, [
+              a(href: 'https://github.com/KeerthiVasan-ai/namma_kahoot', target: Target.blank, attributes: {'style': 'color:#a0a0a0;text-decoration:none;'}, [Component.text('Project GitHub')]),
+            ])
+          ])
+        ]),
+        div(attributes: {'style': 'border-top:1px solid #333;padding-top:20px;font-size:12px;color:#666;text-align:left;'}, [
+          Component.text('Copyright © ${DateTime.now().year} Namma Kahoot | MIT License')
+        ])
       ])
     ]);
   }

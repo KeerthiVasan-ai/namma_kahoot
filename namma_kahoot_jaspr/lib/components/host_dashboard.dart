@@ -108,8 +108,8 @@ class _HostDashboardState extends State<HostDashboard> {
   }
 
   Component _buildLobby(BuildContext context, GameState gameState) {
-    return div(classes: 'scr on', [
-      div(classes: 'topbar', [
+    return div(classes: 'scr on bg-pattern', [
+      div(classes: 'topbar', attributes: {'style': 'background:rgba(255,255,255,0.9);'}, [
         div(attributes: {'style': 'flex:1;'}, [
           div(classes: 'topbar-title', [Component.text('Lobby')]),
           div(classes: 't-sub', [Component.text('Waiting for players')])
@@ -118,97 +118,95 @@ class _HostDashboardState extends State<HostDashboard> {
           span(classes: 'live-dot', attributes: {'style': 'margin-right:6px;'}, []), Component.text('Live')
         ])
       ]),
-      div(classes: 'content-wrap p20 flex-col', attributes: {'style': 'flex:1;'}, [
-        div(classes: 'pin-block mb20', [
-          div(classes: 'pin-label-t', [Component.text('Game PIN')]),
+      div(classes: 'content-wrap p20 flex-col', attributes: {'style': 'flex:1;display:flex;flex-direction:column;'}, [
+        // 1. Centered PIN Block at the top
+        div(classes: 'pin-block mb20', attributes: {'style': 'margin: 40px auto; width: 100%;'}, [
+          div(classes: 'pin-label-t', [Component.text('Join with Game PIN:')]),
           div(classes: 'pin-digits', [Component.text(gameState.session?.pin ?? '...')]),
-          div(classes: 'pin-url', [Component.text('Join on your device to play')])
         ]),
-        div(classes: 'frow mb12', [
-          span(classes: 't-label', [Component.text('Players joined (${gameState.players.length})')]),
+        
+        // 2. Action Bar (Players count on left, Start button on right)
+        div(classes: 'frow mb20', attributes: {'style': 'padding: 0 10px;'}, [
+          div(attributes: {'style': 'background:rgba(0,0,0,0.3);color:#fff;padding:12px 24px;border-radius:8px;font-weight:700;font-size:24px;display:flex;align-items:center;'}, [
+            i(classes: 'ti ti-users', attributes: {'style': 'margin-right:12px;font-size:28px;'}, []),
+            Component.text('${gameState.players.length}')
+          ]),
+          button(
+            classes: 'btn ${gameState.players.isEmpty ? "disabled" : ""}',
+            attributes: {'style': 'font-size:20px;font-weight:800;padding:16px 40px;background:#333;color:#fff;border-radius:8px;box-shadow:0 6px 0 #000;'},
+            events: {
+              'click': (e) {
+                if (gameState.players.isNotEmpty) context.read(gameProvider.notifier).startQuestion();
+              }
+            },
+            [Component.text('Start')]
+          )
         ]),
-        div(classes: 'pgrid mb20 flex-1', attributes: {'style': 'align-content:flex-start;'}, [
+
+        // 3. Player Grid filling the rest
+        div(classes: 'pgrid flex-1', attributes: {'style': 'align-content:flex-start;gap:24px;padding: 20px 10px;'}, [
           for (final pl in gameState.players)
-            div(classes: 'pbadge new', [
-              div(classes: 'pbadge-av av-p', [Component.text(pl.name.isNotEmpty ? pl.name[0].toUpperCase() : '?')]),
-              div(classes: 'pbadge-n', [Component.text(pl.name)])
+            div(classes: 'jump-anim new', attributes: {'style': 'display:flex;flex-direction:column;align-items:center;'}, [
+              div(classes: 'av av-lg', attributes: {'style': 'background:#ffffff;color:var(--kahoot-purple);margin-bottom:8px;box-shadow:0 4px 0 rgba(0,0,0,0.15);font-weight:900;font-size:28px;'}, [
+                Component.text(pl.name.isNotEmpty ? pl.name[0].toUpperCase() : '?')
+              ]),
+              div(attributes: {'style': 'text-align:center;font-size:20px;font-weight:800;color:#fff;text-shadow:1px 1px 3px rgba(0,0,0,0.3);word-break:break-word;'}, [
+                Component.text(pl.name)
+              ])
             ])
-        ]),
-        button(
-          classes: 'btn btn-prim btn-full ${gameState.players.isEmpty ? "disabled" : ""}',
-          attributes: {'style': 'font-size:16px;padding:16px;'},
-          events: {
-            'click': (e) {
-              if (gameState.players.isNotEmpty) context.read(gameProvider.notifier).startQuestion();
-            }
-          },
-          [i(classes: 'ti ti-player-play', []), Component.text(' Start game')]
-        )
+        ])
       ])
     ]);
   }
 
   Component _buildActiveQuestion(BuildContext context, GameState gameState, Question question) {
     final totalAnswers = gameState.answerCounts.values.fold(0, (a, b) => a + b);
-    return div(classes: 'scr on', [
-      div(attributes: {'style': 'padding:16px 20px;border-bottom:0.5px solid var(--color-border-tertiary);'}, [
-        div(classes: 'content-wrap frow mb12', [
-          div(classes: 'chip chip-p', [Component.text('Q ${question.orderIndex + 1} of ${gameState.questions.length}')]),
-          div(classes: 'row', attributes: {'style': 'gap:12px;'}, [
-            div(classes: 'row', attributes: {'style': 'gap:6px;'}, [
-              i(classes: 'ti ti-users', attributes: {'style': 'font-size:16px;color:var(--color-text-secondary);'}, []),
-              span(classes: 't-sub', attributes: {'style': 'font-size:14px;'}, [Component.text('${gameState.players.length} players')])
-            ]),
-            div(classes: 'timer-wrap', [
-              CountdownTimer(
-                key: Key('timer_${question.orderIndex}'),
-                seconds: question.timeLimitSeconds,
-                onFinished: () => context.read(gameProvider.notifier).endQuestion(),
-              )
+    return div(classes: 'scr on bg-pattern', attributes: {'style': 'display:flex;flex-direction:column;min-height:100vh;'}, [
+      div(classes: 'content-wrap p20', attributes: {'style': 'flex:1;display:flex;flex-direction:column;'}, [
+        // Question Card
+        div(classes: 'card', attributes: {'style': 'padding:32px 20px;text-align:center;background:#fff;border-radius:8px;box-shadow:0 8px 16px rgba(0,0,0,0.2);flex-shrink:0;'}, [
+          div(classes: 't-label mb8', [Component.text('Question ${question.orderIndex + 1} of ${gameState.questions.length}')]),
+          div(classes: 't-title', attributes: {'style': 'font-size:32px;font-weight:800;color:#333;'}, [Component.text(question.text)])
+        ]),
+        
+        // Timer and Answers Row (Expands to push content apart, min-height to prevent overlap)
+        div(classes: 'frow', attributes: {'style': 'flex:1;align-items:center;min-height:120px;margin:20px 0;'}, [
+          div(attributes: {'style': 'width:80px;height:80px;background:var(--kahoot-purple);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:36px;font-weight:900;box-shadow:0 6px 0 rgba(0,0,0,0.2);flex-shrink:0;'}, [
+            CountdownTimer(
+              key: Key('timer_${question.orderIndex}'),
+              seconds: question.timeLimitSeconds,
+              onFinished: () => context.read(gameProvider.notifier).endQuestion(),
+            )
+          ]),
+          div(attributes: {'style': 'text-align:center;background:#fff;padding:12px 24px;border-radius:8px;box-shadow:0 4px 0 rgba(0,0,0,0.1);min-width:120px;flex-shrink:0;'}, [
+            div(classes: 't-sub', attributes: {'style': 'font-weight:700;font-size:16px;margin-bottom:4px;'}, [Component.text('Answers')]),
+            div(attributes: {'style': 'font-size:42px;font-weight:900;color:#333;line-height:1;'}, [
+              Component.text('$totalAnswers')
             ])
           ])
         ]),
-        div(classes: 'content-wrap prog', [div(classes: 'prog-fill', attributes: {'style': 'width:${((question.orderIndex + 1) / gameState.questions.length) * 100}%'}, [])])
-      ]),
-      div(classes: 'content-wrap p20 flex-col', attributes: {'style': 'flex:1;'}, [
-        div(classes: 'card mb20', attributes: {'style': 'padding:24px 20px;text-align:center;'}, [
-          div(classes: 't-label mb8', [Component.text('Question ${question.orderIndex + 1}')]),
-          div(classes: 't-title', attributes: {'style': 'font-size:24px;'}, [Component.text(question.text)])
-        ]),
-        div(classes: 'tiles-grid mb20', [
+        
+        // Answers Grid
+        div(classes: 'tiles-grid', attributes: {'style': 'flex-shrink:0;'}, [
           if (question.options.length > 0)
-            div(classes: 'tile ta', [div(classes: 'tile-icon', [i(classes: 'ti ti-triangle', [])]), span(classes: 'tile-text', [Component.text(question.options[0])])]),
+            div(classes: 'tile ta', [div(classes: 'tile-icon', [i(classes: 'ti ti-triangle-filled', [])]), span(classes: 'tile-text', [Component.text(question.options[0])])]),
           if (question.options.length > 1)
-            div(classes: 'tile tb', [div(classes: 'tile-icon', [i(classes: 'ti ti-circle', [])]), span(classes: 'tile-text', [Component.text(question.options[1])])]),
+            div(classes: 'tile tb', [div(classes: 'tile-icon', [i(classes: 'ti ti-diamond-filled', [])]), span(classes: 'tile-text', [Component.text(question.options[1])])]),
           if (question.options.length > 2)
-            div(classes: 'tile tc', [div(classes: 'tile-icon', [i(classes: 'ti ti-square', [])]), span(classes: 'tile-text', [Component.text(question.options[2])])]),
+            div(classes: 'tile tc', [div(classes: 'tile-icon', [i(classes: 'ti ti-circle-filled', [])]), span(classes: 'tile-text', [Component.text(question.options[2])])]),
           if (question.options.length > 3)
-            div(classes: 'tile td', [div(classes: 'tile-icon', [i(classes: 'ti ti-diamond', [])]), span(classes: 'tile-text', [Component.text(question.options[3])])]),
+            div(classes: 'tile td', [div(classes: 'tile-icon', [i(classes: 'ti ti-square-filled', [])]), span(classes: 'tile-text', [Component.text(question.options[3])])]),
         ]),
-        div(classes: 'spacer', []),
-        div(classes: 'card mb16', attributes: {'style': 'padding:16px;'}, [
-          div(classes: 'frow', [
-            div([
-              div(classes: 't-sub', [Component.text('Answers received')]),
-              div(attributes: {'style': 'font-size:28px;font-weight:600;color:#7F77DD;margin-top:4px;'}, [
-                Component.text('$totalAnswers '),
-                span(attributes: {'style': 'font-size:16px;color:var(--color-text-secondary);'}, [Component.text('/ ${gameState.players.length}')])
-              ])
-            ]),
-            div(attributes: {'style': 'display:flex;flex-direction:column;gap:8px;align-items:flex-end;'}, [
-              div(classes: 'prog', attributes: {'style': 'width:120px;height:6px;'}, [
-                div(classes: 'prog-fill', attributes: {'style': 'width:${gameState.players.isNotEmpty ? (totalAnswers / gameState.players.length) * 100 : 0}%;background:#1D9E75;'}, [])
-              ]),
-              div(classes: 't-sub', [Component.text('${gameState.players.isNotEmpty ? ((totalAnswers / gameState.players.length) * 100).round() : 0}% answered')])
-            ])
-          ])
-        ]),
-        button(
-          classes: 'btn btn-prim btn-full',
-          attributes: {'style': 'font-size:15px;padding:14px;'},
-          events: {'click': (e) => context.read(gameProvider.notifier).endQuestion()},
-          [i(classes: 'ti ti-eye', []), Component.text(' Show answer now')]
-        )
+        
+        // Skip Button
+        div(attributes: {'style': 'margin-top:20px;text-align:center;flex-shrink:0;'}, [
+          button(
+            classes: 'btn btn-ghost',
+            attributes: {'style': 'font-size:16px;font-weight:700;padding:12px 24px;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;'},
+            events: {'click': (e) => context.read(gameProvider.notifier).endQuestion()},
+            [i(classes: 'ti ti-eye', attributes: {'style': 'margin-right:8px;'}, []), Component.text('Skip Timer')]
+          )
+        ])
       ])
     ]);
   }
@@ -238,15 +236,15 @@ class _HostDashboardState extends State<HostDashboard> {
         ]),
         div(classes: 't-label mb12', [Component.text('Answer distribution')]),
         div(classes: 'card mb20', attributes: {'style': 'padding:16px;'}, [
-          _buildChartBar('A', gameState.answerCounts[0] ?? 0, gameState.players.length, '#7F77DD'),
-          _buildChartBar('B', gameState.answerCounts[1] ?? 0, gameState.players.length, '#1D9E75'),
-          _buildChartBar('C', gameState.answerCounts[2] ?? 0, gameState.players.length, '#D85A30'),
-          _buildChartBar('D', gameState.answerCounts[3] ?? 0, gameState.players.length, '#BA7517'),
+          _buildChartBar('A', gameState.answerCounts[0] ?? 0, gameState.players.length, 'var(--kahoot-red)'),
+          _buildChartBar('B', gameState.answerCounts[1] ?? 0, gameState.players.length, 'var(--kahoot-blue)'),
+          _buildChartBar('C', gameState.answerCounts[2] ?? 0, gameState.players.length, 'var(--kahoot-yellow)'),
+          _buildChartBar('D', gameState.answerCounts[3] ?? 0, gameState.players.length, 'var(--kahoot-green)'),
         ]),
         div(classes: 'spacer', []),
         button(
-          classes: 'btn btn-prim btn-full',
-          attributes: {'style': 'font-size:15px;padding:14px;'},
+          classes: 'btn btn-full',
+          attributes: {'style': 'font-size:18px;font-weight:700;padding:16px;background:#333;color:#fff;border-radius:4px;box-shadow:0 4px 0 #000;'},
           events: {'click': (e) => context.read(gameProvider.notifier).showLeaderboard()},
           [Component.text('Next (Leaderboard)')]
         )
@@ -315,13 +313,10 @@ class _HostDashboardState extends State<HostDashboard> {
 
   Component _buildPodium(BuildContext context, GameState gameState) {
     final podium = gameState.podium;
-    return div(classes: 'scr on', [
-      div(attributes: {'style': 'background:#7F77DD;padding:40px 20px 24px;'}, [
+    return div(classes: 'scr on bg-pattern', [
+      div(attributes: {'style': 'padding:40px 20px 24px;'}, [
         div(classes: 'content-wrap', attributes: {'style': 'text-align:center;'}, [
-          div(classes: 'chip', attributes: {'style': 'background:rgba(255,255,255,.2);color:#fff;margin-bottom:12px;'}, [
-            i(classes: 'ti ti-trophy', attributes: {'style': 'font-size:14px;'}, []), Component.text(' Game over')
-          ]),
-          div(attributes: {'style': 'font-size:32px;font-weight:600;color:#fff;'}, [Component.text('Final results')]),
+          div(attributes: {'style': 'font-size:48px;font-weight:900;color:#fff;text-shadow:2px 2px 4px rgba(0,0,0,0.3);'}, [Component.text('Podium')]),
         ]),
         div(classes: 'content-wrap podium mt20', [
           if (podium.length > 1)

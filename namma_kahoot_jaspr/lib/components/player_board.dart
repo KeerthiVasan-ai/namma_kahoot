@@ -53,12 +53,11 @@ class _PlayerBoardState extends State<PlayerBoard> {
 
   Component _buildJoinForm(BuildContext context) {
     return div(classes: 'scr on', [
-      div(attributes: {'style': 'background:#7F77DD;padding:40px 20px 48px;text-align:center;'}, [
-        div(attributes: {'style': 'width:64px;height:64px;background:rgba(255,255,255,.2);border-radius:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;'}, [
-          i(classes: 'ti ti-bolt', attributes: {'style': 'font-size:36px;color:#fff;'}, [])
+      div(classes: 'bg-pattern', attributes: {'style': 'padding:60px 20px 80px;text-align:center;'}, [
+        div(attributes: {'style': 'width:80px;height:80px;background:#ffffff;border-radius:24px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;box-shadow:0 8px 0 rgba(0,0,0,0.1);transform: rotate(-10deg);'}, [
+          i(classes: 'ti ti-bolt', attributes: {'style': 'font-size:48px;color:var(--kahoot-purple);'}, [])
         ]),
-        div(attributes: {'style': 'font-size:28px;font-weight:600;color:#fff;'}, [Component.text('Join a game')]),
-        div(attributes: {'style': 'font-size:14px;color:#CECBF6;margin-top:8px;'}, [Component.text('Enter the PIN on screen')])
+        div(attributes: {'style': 'font-size:36px;font-weight:900;color:#fff;text-shadow:2px 2px 4px rgba(0,0,0,0.3);'}, [Component.text('Join Game')]),
       ]),
       div(classes: 'content-wrap', attributes: {'style': 'margin-top:-24px;position:relative;padding:0 20px;'}, [
         div(classes: 'card', [
@@ -81,20 +80,17 @@ class _PlayerBoardState extends State<PlayerBoard> {
             ]),
             div(classes: 'fgroup mt16', [
               label(classes: 'flabel', [Component.text('Your nickname')]),
-              div(classes: 'row', attributes: {'style': 'gap:12px;'}, [
-                div(classes: 'av av-md av-p', [Component.text(username.isNotEmpty ? username[0].toUpperCase() : '?')]),
-                input(classes: 'finput', attributes: {
-                  'type': 'text',
-                  'placeholder': 'Nickname',
-                  'style': 'flex:1;'
-                }, events: {
-                  'input': (e) => setState(() => username = (e.target as dynamic).value ?? ''),
-                }),
-              ])
+              input(classes: 'finput', attributes: {
+                'type': 'text',
+                'placeholder': 'Nickname',
+                'style': 'text-align:center;font-size:20px;font-weight:700;height:56px;'
+              }, events: {
+                'input': (e) => setState(() => username = (e.target as dynamic).value ?? ''),
+              }),
             ]),
             button(
-              classes: 'btn btn-prim btn-full mt20 ${isJoining ? "disabled" : ""}',
-              attributes: {'style': 'font-size:16px;padding:14px;'},
+              classes: 'btn btn-full mt20 ${isJoining ? "disabled" : ""}',
+              attributes: {'style': 'font-size:18px;font-weight:700;padding:16px;background:#333333;color:#fff;border-radius:4px;box-shadow:0 4px 0 #000;'},
               events: {
                 'click': (e) async {
                   if (pin.isEmpty || username.isEmpty || isJoining) return;
@@ -124,98 +120,49 @@ class _PlayerBoardState extends State<PlayerBoard> {
 
   Component _buildLobbyScreen(BuildContext context, GameState gameState) {
     return div(classes: 'scr on', [
-      div(attributes: {'style': 'background:#7F77DD;padding:40px 20px;text-align:center;'}, [
-        div(classes: 'chip chip-live', attributes: {'style': 'background:rgba(255,255,255,.2);color:#fff;margin-bottom:16px;'}, [
-          span(classes: 'live-dot', attributes: {'style': 'background:#fff;width:8px;height:8px;'}, []), Component.text(' Connected')
-        ]),
-        div(classes: 'av av-lg av-p', attributes: {'style': 'margin:0 auto 12px;width:72px;height:72px;font-size:24px;'}, [
-          Component.text(gameState.currentPlayer?.name.isNotEmpty == true ? gameState.currentPlayer!.name[0].toUpperCase() : '?')
-        ]),
-        div(attributes: {'style': 'font-size:24px;font-weight:600;color:#fff;'}, [Component.text(gameState.currentPlayer?.name ?? username)]),
-        div(attributes: {'style': 'font-size:14px;color:#CECBF6;margin-top:6px;'}, [Component.text('PIN ${gameState.session?.pin}')]),
+      div(classes: 'bg-pattern', attributes: {'style': 'padding:40px 20px;text-align:center;flex:1;display:flex;flex-direction:column;justify-content:center;'}, [
+        div(attributes: {'style': 'font-size:36px;font-weight:900;color:#fff;margin-bottom:20px;'}, [Component.text('You\'re in!')]),
+        div(attributes: {'style': 'font-size:24px;font-weight:700;color:#fff;'}, [Component.text(gameState.currentPlayer?.name ?? username)]),
+        div(attributes: {'style': 'font-size:16px;color:rgba(255,255,255,.8);margin-top:20px;font-weight:600;'}, [Component.text('See your nickname on screen')]),
       ]),
-      div(classes: 'content-wrap p20', [
-        div(classes: 'card', attributes: {'style': 'text-align:center;padding:32px 20px;margin-bottom:16px;'}, [
-          i(classes: 'ti ti-dots', attributes: {'style': 'font-size:36px;color:#7F77DD;animation:pulse 1.5s infinite;'}, []),
-          div(classes: 't-body mt12', attributes: {'style': 'font-weight:500;font-size:16px;'}, [Component.text('Waiting for host to start')]),
-          div(classes: 't-sub mt8', [Component.text('${gameState.players.length} players in the room')])
-        ]),
-        div(classes: 'pgrid', [
-          for (final pl in gameState.players)
-            div(classes: 'pbadge ${pl.id == gameState.currentPlayer?.id ? "new" : ""}', attributes: pl.id == gameState.currentPlayer?.id ? {'style': 'border:2px solid #7F77DD;'} : {}, [
-              div(classes: 'pbadge-av av-t', attributes: pl.id == gameState.currentPlayer?.id ? {'style': 'background:#EEEDFE;color:#3C3489;'} : {}, [
-                Component.text(pl.name.isNotEmpty ? pl.name[0].toUpperCase() : '?')
-              ]),
-              div(classes: 'pbadge-n', attributes: pl.id == gameState.currentPlayer?.id ? {'style': 'color:#7F77DD;font-weight:600;'} : {}, [
-                Component.text(pl.id == gameState.currentPlayer?.id ? 'You' : pl.name)
-              ])
-            ])
-        ])
-      ])
     ]);
   }
 
   Component _buildQuestionScreen(BuildContext context, GameState gameState) {
     final currentQuestionIndex = gameState.session?.currentQuestionIndex ?? 0;
     if (currentQuestionIndex >= gameState.questions.length) {
-      return div(classes: 'scr on flex-center', [Component.text('Waiting for question...')]);
+      return div(classes: 'scr on bg-pattern flex-center', attributes: {'style':'color:#fff;font-size:24px;font-weight:700;'}, [Component.text('Get Ready!')]);
     }
     final question = gameState.questions[currentQuestionIndex];
 
-    return div(classes: 'scr on', [
-      div(attributes: {'style': 'padding:16px 20px;border-bottom:0.5px solid var(--color-border-tertiary);background:var(--color-background-primary);'}, [
-        div(classes: 'content-wrap', [
-          div(classes: 'frow mb12', [
-            div(classes: 'chip chip-p', [Component.text('Q ${currentQuestionIndex + 1} of ${gameState.questions.length}')]),
-            div(classes: 'row', attributes: {'style': 'gap:12px;'}, [
-              div(classes: 'streak', [i(classes: 'ti ti-flame', attributes: {'style': 'font-size:14px;'}, []), Component.text(' ${gameState.currentPlayer?.score ?? 0} pts')])
-            ])
-          ]),
-          div(classes: 'prog', [div(classes: 'prog-fill', attributes: {'style': 'width:${((currentQuestionIndex + 1) / gameState.questions.length) * 100}%'}, [])])
-        ])
-      ]),
-      div(classes: 'content-wrap p20 flex-1', [
-        div(classes: 'card mb20', attributes: {'style': 'padding:24px 20px;text-align:center;'}, [
-          div(classes: 't-title', attributes: {'style': 'font-size:20px;'}, [Component.text(question.text)])
-        ]),
-        div(classes: 'tiles-grid', [
+    return div(classes: 'scr on bg-pattern', [
+      div(classes: 'flex-col', attributes: {'style': 'flex:1;padding:8px;'}, [
+        div(attributes: {'style': 'display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:8px;flex:1;width:100%;height:100%;'}, [
           if (question.options.length > 0)
-            button(classes: 'tile ta', events: {'click': (e) => context.read(gameProvider.notifier).submitAnswer(0)}, [
-              div(classes: 'tile-icon', [i(classes: 'ti ti-triangle', [])]), span(classes: 'tile-text', [Component.text(question.options[0])])
+            button(classes: 'tile ta', attributes: {'style': 'display:flex;justify-content:center;align-items:center;padding:0;min-height:0;height:100%;box-shadow:inset 0 -8px 0 rgba(0,0,0,0.2);'}, events: {'click': (e) => context.read(gameProvider.notifier).submitAnswer(0)}, [
+              i(classes: 'ti ti-triangle-filled', attributes: {'style':'font-size:min(30vw, 120px);color:#fff;'}, [])
             ]),
           if (question.options.length > 1)
-            button(classes: 'tile tb', events: {'click': (e) => context.read(gameProvider.notifier).submitAnswer(1)}, [
-              div(classes: 'tile-icon', [i(classes: 'ti ti-circle', [])]), span(classes: 'tile-text', [Component.text(question.options[1])])
+            button(classes: 'tile tb', attributes: {'style': 'display:flex;justify-content:center;align-items:center;padding:0;min-height:0;height:100%;box-shadow:inset 0 -8px 0 rgba(0,0,0,0.2);'}, events: {'click': (e) => context.read(gameProvider.notifier).submitAnswer(1)}, [
+              i(classes: 'ti ti-diamond-filled', attributes: {'style':'font-size:min(30vw, 120px);color:#fff;'}, [])
             ]),
           if (question.options.length > 2)
-            button(classes: 'tile tc', events: {'click': (e) => context.read(gameProvider.notifier).submitAnswer(2)}, [
-              div(classes: 'tile-icon', [i(classes: 'ti ti-square', [])]), span(classes: 'tile-text', [Component.text(question.options[2])])
+            button(classes: 'tile tc', attributes: {'style': 'display:flex;justify-content:center;align-items:center;padding:0;min-height:0;height:100%;box-shadow:inset 0 -8px 0 rgba(0,0,0,0.2);'}, events: {'click': (e) => context.read(gameProvider.notifier).submitAnswer(2)}, [
+              i(classes: 'ti ti-circle-filled', attributes: {'style':'font-size:min(30vw, 120px);color:#fff;'}, [])
             ]),
           if (question.options.length > 3)
-            button(classes: 'tile td', events: {'click': (e) => context.read(gameProvider.notifier).submitAnswer(3)}, [
-              div(classes: 'tile-icon', [i(classes: 'ti ti-diamond', [])]), span(classes: 'tile-text', [Component.text(question.options[3])])
+            button(classes: 'tile td', attributes: {'style': 'display:flex;justify-content:center;align-items:center;padding:0;min-height:0;height:100%;box-shadow:inset 0 -8px 0 rgba(0,0,0,0.2);'}, events: {'click': (e) => context.read(gameProvider.notifier).submitAnswer(3)}, [
+              i(classes: 'ti ti-square-filled', attributes: {'style':'font-size:min(30vw, 120px);color:#fff;'}, [])
             ]),
-        ]),
-        div(attributes: {'style': 'text-align:center;margin-top:16px;'}, [
-          span(classes: 't-sub', [Component.text('Tap a tile to answer')])
         ])
       ])
     ]);
   }
 
   Component _buildWaitingScreen(BuildContext context, GameState gameState) {
-    return div(classes: 'scr on', [
-      div(classes: 'content-wrap p20 flex-col flex-center h-full', attributes: {'style': 'flex:1;justify-content:center;'}, [
-        div(classes: 'banner banner-ok', attributes: {'style': 'flex-direction:column;padding:32px 24px;text-align:center;width:100%;max-width:400px;margin:0 auto;'}, [
-          i(classes: 'ti ti-check', attributes: {'style': 'font-size:48px;color:#1D9E75;margin-bottom:12px;'}, []),
-          div(classes: 't-hero', attributes: {'style': 'font-size:24px;color:#085041;margin-bottom:8px;'}, [Component.text('Answer locked in!')]),
-          div(classes: 't-body', attributes: {'style': 'color:#0F6E56;'}, [Component.text('Waiting for others to finish...')]),
-        ]),
-        div(classes: 'mt20', attributes: {'style': 'text-align:center;'}, [
-          div(classes: 't-label', [Component.text('Current Score')]),
-          div(classes: 't-num mt8', attributes: {'style': 'color:#7F77DD;font-size:36px;'}, [Component.text('${gameState.currentPlayer?.score ?? 0}')])
-        ])
-      ])
+    return div(classes: 'scr on bg-pattern flex-col flex-center h-full', attributes: {'style': 'flex:1;justify-content:center;color:#fff;'}, [
+      div(attributes: {'style': 'font-size:32px;font-weight:900;margin-bottom:12px;'}, [Component.text('Waiting for others...')]),
+      div(attributes: {'style': 'font-size:20px;font-weight:600;opacity:0.8;'}, [Component.text('You\'re fast!')])
     ]);
   }
 
@@ -223,43 +170,30 @@ class _PlayerBoardState extends State<PlayerBoard> {
     final isCorrect = gameState.submittedAnswerIndex == gameState.correctOptionIndex;
     final points = gameState.earnedPoints ?? 0;
 
-    return div(classes: 'scr on', [
-      div(classes: 'content-wrap p20 flex-col flex-center h-full', attributes: {'style': 'flex:1;justify-content:center;'}, [
-        div(classes: 'banner ${isCorrect ? "banner-ok" : "banner-err"}', attributes: {'style': 'flex-direction:column;padding:40px 24px;text-align:center;width:100%;max-width:400px;margin:0 auto;'}, [
-          i(classes: isCorrect ? 'ti ti-check-circle' : 'ti ti-circle-x', attributes: {'style': 'font-size:56px;color:${isCorrect ? "#1D9E75" : "#D85A30"};margin-bottom:16px;'}, []),
-          div(classes: 't-hero', attributes: {'style': 'font-size:32px;color:${isCorrect ? "#085041" : "#712B13"};margin-bottom:12px;'}, [
-            Component.text(isCorrect ? 'Correct!' : 'Wrong!')
-          ]),
-          div(classes: 'streak', [
-            i(classes: isCorrect ? 'ti ti-trending-up' : 'ti ti-trending-down', attributes: {'style': 'font-size:16px;'}, []),
-            Component.text(isCorrect ? '+$points points' : '0 points')
-          ])
-        ]),
-        div(classes: 'mt20', attributes: {'style': 'text-align:center;'}, [
-          div(classes: 't-label', [Component.text('Total Score')]),
-          div(classes: 't-num mt8', attributes: {'style': 'color:#7F77DD;font-size:42px;'}, [Component.text('${gameState.currentPlayer?.score ?? 0}')])
-        ])
+    return div(classes: 'scr on flex-col flex-center h-full', attributes: {'style': 'flex:1;justify-content:center;background:${isCorrect ? "var(--kahoot-green)" : "var(--kahoot-red)"};color:#fff;'}, [
+      i(classes: isCorrect ? 'ti ti-check' : 'ti ti-x', attributes: {'style': 'font-size:80px;font-weight:900;margin-bottom:16px;'}, []),
+      div(attributes: {'style': 'font-size:48px;font-weight:900;margin-bottom:12px;'}, [
+        Component.text(isCorrect ? 'Correct!' : 'Incorrect')
+      ]),
+      div(classes: 'chip', attributes: {'style':'background:rgba(0,0,0,0.2);color:#fff;font-size:20px;padding:8px 16px;font-weight:700;'}, [
+        Component.text(isCorrect ? '+$points' : '0')
       ])
     ]);
   }
 
   Component _buildFinishScreen(BuildContext context, GameState gameState) {
-    return div(classes: 'scr on', [
-      div(attributes: {'style': 'background:#7F77DD;padding:40px 20px 32px;text-align:center;'}, [
-        div(classes: 'chip', attributes: {'style': 'background:rgba(255,255,255,.2);color:#fff;margin-bottom:16px;'}, [
-          i(classes: 'ti ti-trophy', attributes: {'style': 'font-size:14px;'}, []), Component.text(' Game over')
-        ]),
-        div(attributes: {'style': 'font-size:32px;font-weight:600;color:#fff;'}, [Component.text('Final results')]),
-        div(attributes: {'style': 'font-size:14px;color:#CECBF6;margin-top:6px;'}, [Component.text(gameState.currentPlayer?.name ?? 'Player')])
+    return div(classes: 'scr on bg-pattern', attributes: {'style': 'flex:1;'}, [
+      div(attributes: {'style': 'padding:40px 20px 32px;text-align:center;'}, [
+        div(attributes: {'style': 'font-size:48px;font-weight:900;color:#fff;text-shadow:2px 2px 0 rgba(0,0,0,0.2);'}, [Component.text('Podium')]),
       ]),
       div(classes: 'content-wrap p20 flex-1', [
-        div(classes: 'card', attributes: {'style': 'padding:24px;text-align:center;background:#EEEDFE;border-color:#AFA9EC;margin-bottom:20px;'}, [
-          div(classes: 't-label', attributes: {'style': 'color:#534AB7;margin-bottom:8px;'}, [Component.text('Your final score')]),
-          div(attributes: {'style': 'font-size:48px;font-weight:700;color:#3C3489;'}, [Component.text('${gameState.currentPlayer?.score ?? 0}')]),
+        div(classes: 'card', attributes: {'style': 'padding:32px;text-align:center;background:#fff;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.2);margin-bottom:20px;'}, [
+          div(attributes: {'style': 'color:var(--color-text-secondary);font-size:18px;font-weight:700;margin-bottom:8px;'}, [Component.text('Your final score')]),
+          div(attributes: {'style': 'font-size:64px;font-weight:900;color:#333;'}, [Component.text('${gameState.currentPlayer?.score ?? 0}')]),
         ]),
         button(
-          classes: 'btn btn-white btn-full',
-          attributes: {'style': 'font-size:16px;padding:16px;'},
+          classes: 'btn btn-full',
+          attributes: {'style': 'font-size:18px;font-weight:700;padding:16px;background:#333333;color:#fff;border-radius:4px;box-shadow:0 4px 0 #000;'},
           events: {
             'click': (e) {
               context.read(gameProvider.notifier).reset();

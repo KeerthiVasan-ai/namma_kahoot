@@ -49,8 +49,6 @@ class _CountdownTimerState extends State<CountdownTimer> {
 
   @override
   Component build(BuildContext context) {
-    return div(classes: 'timer-circle', [
-      Component.text('$_currentSeconds')
-    ]);
+    return span([Component.text('$_currentSeconds')]);
   }
 }
