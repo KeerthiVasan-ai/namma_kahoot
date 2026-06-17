@@ -29,11 +29,11 @@ webServer:
 
 # This is the database setup for your server.
 database:
-  host: db.xwxgzxjclxuxqmsampgd.supabase.co
-  port: 6543
-  name: postgres
+  host: localhost
+  port: 8090
+  name: namma_kahoot
   user: postgres
-  requireSsl: true # Supabase requires SSL
+  requireSsl: false # Local Docker Postgres does not require SSL
   #isUnixSocket: true # defaults to false
   #maxConnectionCount: 10 # Defaults to 10, a negative or null value removes the limit
 

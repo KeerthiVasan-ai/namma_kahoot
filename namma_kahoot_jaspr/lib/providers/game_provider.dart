@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:flutter_riverpod/legacy.dart';
+import 'package:jaspr_riverpod/jaspr_riverpod.dart';
 import 'package:namma_kahoot_client/namma_kahoot_client.dart';
-import '../../../main.dart';
+import 'client_provider.dart';
 
 class GameState {
   final GameSession? session;
@@ -11,12 +11,12 @@ class GameState {
   final List<Question> questions;
   final GameEvent? lastEvent;
   final bool isConnected;
-  final Map<int, int> answerCounts; // optionIndex -> count
-  final int? submittedAnswerIndex; // answer chosen by this player
-  final int? earnedPoints; // points awarded for current question
-  final int? correctOptionIndex; // revealed correct answer
-  final List<dynamic> leaderboard; // top players list
-  final List<dynamic> podium; // top 3 players list
+  final Map<int, int> answerCounts;
+  final int? submittedAnswerIndex;
+  final int? earnedPoints;
+  final int? correctOptionIndex;
+  final List<dynamic> leaderboard;
+  final List<dynamic> podium;
 
   GameState({
     this.session,
@@ -41,9 +41,9 @@ class GameState {
     GameEvent? lastEvent,
     bool? isConnected,
     Map<int, int>? answerCounts,
-    Object? submittedAnswerIndex = const Object(),
-    Object? earnedPoints = const Object(),
-    Object? correctOptionIndex = const Object(),
+    Object? submittedAnswerIndex = const _Sentinel(),
+    Object? earnedPoints = const _Sentinel(),
+    Object? correctOptionIndex = const _Sentinel(),
     List<dynamic>? leaderboard,
     List<dynamic>? podium,
   }) {
@@ -55,13 +55,13 @@ class GameState {
       lastEvent: lastEvent ?? this.lastEvent,
       isConnected: isConnected ?? this.isConnected,
       answerCounts: answerCounts ?? this.answerCounts,
-      submittedAnswerIndex: submittedAnswerIndex == const Object()
+      submittedAnswerIndex: submittedAnswerIndex is _Sentinel
           ? this.submittedAnswerIndex
           : (submittedAnswerIndex as int?),
-      earnedPoints: earnedPoints == const Object()
+      earnedPoints: earnedPoints is _Sentinel
           ? this.earnedPoints
           : (earnedPoints as int?),
-      correctOptionIndex: correctOptionIndex == const Object()
+      correctOptionIndex: correctOptionIndex is _Sentinel
           ? this.correctOptionIndex
           : (correctOptionIndex as int?),
       leaderboard: leaderboard ?? this.leaderboard,
@@ -70,30 +70,33 @@ class GameState {
   }
 }
 
-class GameNotifier extends StateNotifier<GameState> {
+class _Sentinel {
+  const _Sentinel();
+}
+
+class GameNotifier extends Notifier<GameState> {
   StreamSubscription? _subscription;
 
-  GameNotifier() : super(GameState());
+  @override
+  GameState build() => GameState();
 
-  /// Reset game state
   void reset() {
     _subscription?.cancel();
     state = GameState();
   }
 
-  /// Player joins game
   Future<bool> joinGame(String pin, String username) async {
     try {
-      // Ensure the WebSocket streaming connection is open for real-time messages
-      await client.openStreamingConnection();
-      
+      await client.openStreamingConnection(disconnectOnLostInternetConnection: false);
       final player = await client.kahoot.joinGame(pin, username);
       if (player != null) {
         final session = await client.kahoot.getGameByPin(pin);
         if (session != null) {
+          final questions = await client.admin.getQuestionsForQuiz(session.quizId);
           state = state.copyWith(
             currentPlayer: player,
             session: session,
+            questions: questions,
             isConnected: true,
           );
           _subscribeToGame(pin, isHost: false);
@@ -101,29 +104,24 @@ class GameNotifier extends StateNotifier<GameState> {
         }
       }
     } catch (e) {
-      // Print or log error
+      print('Error joining game: $e');
     }
     return false;
   }
 
-  /// Host starts a game
   Future<void> hostGame(int quizId) async {
     try {
-      // Ensure the WebSocket streaming connection is open for real-time messages
-      await client.openStreamingConnection();
-
-      final session = await client.kahoot.createGame(quizId, 1); // Mocked hostId = 1
+      await client.openStreamingConnection(disconnectOnLostInternetConnection: false);
+      final session = await client.kahoot.createGame(quizId, 1);
       final questions = await client.admin.getQuestionsForQuiz(quizId);
-      
       state = state.copyWith(
         session: session,
         questions: questions,
         isConnected: true,
       );
-      
       _subscribeToGame(session.pin, isHost: true);
     } catch (e) {
-      // Handle error
+      print('Error starting game: $e');
     }
   }
 
@@ -146,16 +144,13 @@ class GameNotifier extends StateNotifier<GameState> {
         score: 0,
       );
       state = updatedState.copyWith(players: [...state.players, newPlayer]);
-    } 
-    else if (event.eventType == 'QUESTION_STARTED') {
+    } else if (event.eventType == 'QUESTION_STARTED') {
       final data = jsonDecode(event.dataJson);
       final newIndex = data['questionIndex'] as int;
-      
       if (state.session != null) {
         state.session!.currentQuestionIndex = newIndex;
         state.session!.status = 'active';
       }
-      
       state = state.copyWith(
         lastEvent: event,
         answerCounts: {},
@@ -163,60 +158,45 @@ class GameNotifier extends StateNotifier<GameState> {
         earnedPoints: null,
         correctOptionIndex: null,
       );
-    } 
-    else if (event.eventType == 'ANSWER_RECEIVED') {
+    } else if (event.eventType == 'ANSWER_RECEIVED') {
       final data = jsonDecode(event.dataJson);
       final optionIndex = data['optionIndex'] as int;
       final currentCounts = Map<int, int>.from(state.answerCounts);
       currentCounts[optionIndex] = (currentCounts[optionIndex] ?? 0) + 1;
-      
       state = updatedState.copyWith(answerCounts: currentCounts);
-    } 
-    else if (event.eventType == 'QUESTION_ENDED') {
+    } else if (event.eventType == 'QUESTION_ENDED') {
       final data = jsonDecode(event.dataJson);
-      final correctOptionIndex = data['correctOptionIndex'] as int;
-      
+      final correctIdx = data['correctOptionIndex'] as int;
       if (state.session != null) {
         state.session!.status = 'paused';
       }
-
-      state = updatedState.copyWith(
-        correctOptionIndex: correctOptionIndex,
-      );
-      
-      // If we are a player, fetch our updated score from the server
+      state = updatedState.copyWith(correctOptionIndex: correctIdx);
       if (state.currentPlayer != null) {
         _syncPlayerScore();
       }
-    } 
-    else if (event.eventType == 'SHOW_LEADERBOARD') {
+    } else if (event.eventType == 'SHOW_LEADERBOARD') {
       final data = jsonDecode(event.dataJson);
       final topPlayers = data['topPlayers'] as List<dynamic>;
       if (state.session != null) {
         state.session!.status = 'paused';
       }
       state = updatedState.copyWith(leaderboard: topPlayers);
-    } 
-    else if (event.eventType == 'GAME_FINISHED') {
+    } else if (event.eventType == 'GAME_FINISHED') {
       final data = jsonDecode(event.dataJson);
       final topPlayers = data['topPlayers'] as List<dynamic>;
       if (state.session != null) {
         state.session!.status = 'finished';
       }
       state = updatedState.copyWith(podium: topPlayers);
-    } 
-    else {
+    } else {
       state = updatedState;
     }
   }
 
-  /// Player submits an answer
   Future<void> submitAnswer(int optionIndex) async {
     if (state.session == null || state.currentPlayer == null) return;
-    
     final pin = state.session!.pin;
     final playerId = state.currentPlayer!.id!;
-    
     try {
       final points = await client.kahoot.submitAnswer(pin, playerId, optionIndex);
       state = state.copyWith(
@@ -224,11 +204,10 @@ class GameNotifier extends StateNotifier<GameState> {
         earnedPoints: points,
       );
     } catch (e) {
-      // Handle error
+      print('Error submitting answer: $e');
     }
   }
 
-  /// Sync player score from server database
   Future<void> _syncPlayerScore() async {
     if (state.currentPlayer == null) return;
     try {
@@ -240,17 +219,15 @@ class GameNotifier extends StateNotifier<GameState> {
         state = state.copyWith(currentPlayer: updatedPlayer);
       }
     } catch (e) {
-      // Handle error
+      print('Error syncing score: $e');
     }
   }
 
-  /// Host triggers first question
   Future<void> startQuestion() async {
     if (state.session == null) return;
     await client.kahoot.startQuestion(state.session!.pin);
   }
 
-  /// Host triggers next question
   Future<void> nextQuestion() async {
     if (state.session == null) return;
     final updatedSession = await client.kahoot.nextQuestion(state.session!.pin);
@@ -259,31 +236,20 @@ class GameNotifier extends StateNotifier<GameState> {
     }
   }
 
-  /// Host ends current question
   Future<void> endQuestion() async {
     if (state.session == null) return;
     await client.kahoot.endQuestion(state.session!.pin);
   }
 
-  /// Host displays leaderboard
   Future<void> showLeaderboard() async {
     if (state.session == null) return;
     await client.kahoot.showLeaderboard(state.session!.pin);
   }
 
-  /// Host finishes the game
   Future<void> finishGame() async {
     if (state.session == null) return;
     await client.kahoot.finishGame(state.session!.pin);
   }
-
-  @override
-  void dispose() {
-    _subscription?.cancel();
-    super.dispose();
-  }
 }
 
-final gameProvider = StateNotifierProvider<GameNotifier, GameState>((ref) {
-  return GameNotifier();
-});
+final gameProvider = NotifierProvider<GameNotifier, GameState>(GameNotifier.new);
